@@ -11,6 +11,72 @@
 
     <modules>
         <module>../agent</module>
+        <module>../test</module>
     </modules>
+
+    <properties>
+        <!-- actual path to tools.jar is defined in the profiles below -->
+        <tools.jar>/file-not-found/tools.jar</tools.jar>
+
+        <!-- Decouple file encoding of the platform encoding -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bluecatcode.guava</groupId>
+            <artifactId>guava-18.0-extended</artifactId>
+            <version>1.0.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <profiles>
+        <profile>
+            <!-- normally tools jar is in ../lib/tools.jar -->
+            <id>default-toolsjar-profile</id>
+            <activation>
+                <file>
+                    <exists>${java.home}/../lib/tools.jar</exists>
+                </file>
+            </activation>
+            <properties>
+                <tools.jar>${java.home}/../lib/tools.jar</tools.jar>
+            </properties>
+        </profile>
+
+        <!-- We override the tools.jar property on mac osx -->
+        <profile>
+            <!-- on pre-jdk7 mac releases tools jar is in ../Classes/classes.jar -->
+            <id>mac-toolsjar-profile</id>
+            <activation>
+                <file>
+                    <exists>${java.home}/../Classes/classes.jar</exists>
+                </file>
+            </activation>
+            <properties>
+                <tools.jar>${java.home}/../Classes/classes.jar</tools.jar>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
