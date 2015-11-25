@@ -2,6 +2,7 @@ package com.bluecatcode.jeff.agent;
 
 import com.google.common.collect.ImmutableSet;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.slf4j.Logger;
@@ -30,17 +31,11 @@ public class JeffClassFileTransformer implements ClassFileTransformer {
         if (!classNameBlacklist.contains(className)) {
             logger.info("visit class: {}, loader: {}", className, loader);
 
-            ClassReader reader = new ClassReader(originalBytecode);
-            JeffClassVisitor visitor = new JeffClassVisitor(Opcodes.ASM5);
-            reader.accept(visitor, ClassReader.EXPAND_FRAMES);
-
-            Set<String> methods = visitor.getMethods();
-            logger.info("interesting methods ({}): {}", methods.size(), methods);
-
-//            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-//            writer.visitEnd();
-//            return writer.toByteArray();
-            return originalBytecode;
+            ClassReader cr = new ClassReader(originalBytecode);
+            ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES);
+            ClassVisitor cv = new LogMethodClassVisitor(cw, className);
+            cr.accept(cv, 0);
+            return cw.toByteArray();
         } else {
             logger.debug("ignore class: {}", className);
         }
