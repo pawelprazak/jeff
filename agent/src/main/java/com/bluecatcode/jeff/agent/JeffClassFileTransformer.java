@@ -20,7 +20,8 @@ public class JeffClassFileTransformer implements ClassFileTransformer {
     private Set<String> classNameBlacklist = ImmutableSet.of(
             "java/lang/ClassCircularityError",
             "java/lang/UnsupportedClassVersionError",
-            "java/lang/ClassFormatError"
+            "java/lang/ClassFormatError",
+            "java/lang/VerifyError"
     );
 
     public byte[] transform(ClassLoader loader,
@@ -31,11 +32,11 @@ public class JeffClassFileTransformer implements ClassFileTransformer {
         if (!classNameBlacklist.contains(className)) {
             logger.info("visit class: {}, loader: {}", className, loader);
 
-            ClassReader cr = new ClassReader(originalBytecode);
-            ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES);
-            ClassVisitor cv = new LogMethodClassVisitor(cw, className);
-            cr.accept(cv, 0);
-            return cw.toByteArray();
+            ClassReader reader = new ClassReader(originalBytecode);
+            ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_FRAMES);
+            ClassVisitor visitor = new LogMethodClassVisitor(writer, className);
+            reader.accept(visitor, 0);
+            return writer.toByteArray();
         } else {
             logger.debug("ignore class: {}", className);
         }

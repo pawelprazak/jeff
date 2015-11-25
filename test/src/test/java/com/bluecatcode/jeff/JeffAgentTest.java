@@ -22,7 +22,7 @@ public class JeffAgentTest {
 
     @Test
     public void testInitialize() throws Exception {
-        Server server = new Server(8080);
+//        Server server = new Server(8080);
 //        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 //        context.setContextPath("/");
 //        server.setHandler(context);
@@ -38,8 +38,8 @@ public class JeffAgentTest {
 //                                resp.getWriter().print("Powered by " + message);
 //                            }
 //                        }), "/*");
-        server.start();
-        server.stop();
+//        server.start();
+//        server.stop();
     }
 
 }
