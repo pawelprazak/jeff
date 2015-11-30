@@ -29,8 +29,32 @@ public class PrintMessageMethodVisitor extends MethodVisitor implements Opcodes 
     public void visitCode() {
         logger.info("visit code, method: {}, class: {}", methodName, className);
 
+        systemout("Call: " + className + "#" + methodName);
+        sysoutcount();
+    }
+
+    private void systemout(String msg) {
         mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-        mv.visitLdcInsn("Call: " + className + "#" + methodName);
+        mv.visitLdcInsn(msg);
         mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+    }
+
+    private void sysoutcount() {
+        mv.visitMethodInsn(INVOKESTATIC, "com/bluecatcode/jeff/agent/Counter", "newNotifier", "()Lcom/bluecatcode/jeff/agent/Counter$Notifier;", false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "com/bluecatcode/jeff/agent/Counter$Notifier", "send", "()V", false);
+        mv.visitFieldInsn(GETSTATIC, "com/bluecatcode/jeff/agent/Counter", "INSTANCE", "Lcom/bluecatcode/jeff/agent/Counter;");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "com/bluecatcode/jeff/agent/Counter", "count", "()I", false);
+        mv.visitVarInsn(ISTORE, 1);
+        mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+        mv.visitTypeInsn(NEW, "java/lang/StringBuilder");
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false);
+        mv.visitLdcInsn("Call: ");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false);
+        mv.visitVarInsn(ILOAD, 1);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(I)Ljava/lang/StringBuilder;", false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+
     }
 }

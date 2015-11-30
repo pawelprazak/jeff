@@ -8,7 +8,6 @@ public class CodeProvider {
         System.out.println("Call: " + count);
     }
 
-
     public void dump2() {
         System.out.println("msg");
     }

@@ -7,8 +7,11 @@ import com.sun.tools.attach.VirtualMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
+import java.util.jar.JarFile;
 
 import static com.bluecatcode.common.io.Closeables.closeableFrom;
 
@@ -36,7 +39,7 @@ public class JeffAgent {
             if (firstTime) {
                 firstTime = false;
             } else {
-                throw new Exception("Main : attempting to load Byteman agent more than once");
+                throw new Exception("Main : attempting to load agent more than once");
             }
         }
 
@@ -47,9 +50,6 @@ public class JeffAgent {
         logger.info("premain method invoked with args: '{}' and inst: '{}'", args, inst);
         instrumentation = inst;
         instrumentation.addTransformer(new JeffClassFileTransformer(), true);
-        for (Class aClass : instrumentation.getAllLoadedClasses()) {
-//            logger.info("{}", aClass);
-        }
     }
 
     /**
@@ -85,14 +85,15 @@ public class JeffAgent {
         logger.info("dynamically loading javaagent to JVM process: {}", nameOfRunningVM);
         try (CloseableReference<VirtualMachine> vm = closeableFrom(VirtualMachine.attach(pid), VirtualMachine::detach)) {
             String jarFilePath = locateAgent();
-            vm.get().loadAgent(jarFilePath);
+            VirtualMachine virtualMachine = vm.get();
+            virtualMachine.loadAgent(jarFilePath);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     private static String locateAgent() {
-        return "/home/pawel/.m2/repository/com/bluecatcode/jeff-agent/1.0-SNAPSHOT/jeff-agent-1.0-SNAPSHOT-jar-with-dependencies.jar";
+        return "/home/pawel/.m2/repository/com/bluecatcode/jeff-agent/1.0-SNAPSHOT/jeff-agent-1.0-SNAPSHOT.jar";
     }
 
 }

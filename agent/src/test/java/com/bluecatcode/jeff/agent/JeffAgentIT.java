@@ -1,8 +1,8 @@
-package com.bluecatcode.jeff;
+package com.bluecatcode.jeff.agent;
 
 import org.junit.Test;
 
-public class JeffAgentTest {
+public class JeffAgentIT {
 
     @Test
     public void testInitialize() throws Exception {

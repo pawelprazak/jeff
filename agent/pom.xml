@@ -15,8 +15,27 @@
     <dependencies>
         <dependency>
             <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-all</artifactId>
-            <version>5.0.3</version>
+            <!--<artifactId>asm-all</artifactId>-->
+            <artifactId>asm-debug-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bluecatcode.guava</groupId>
+            <artifactId>guava-18.0-extended</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
+        <!-- Test dependecies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -24,44 +43,124 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>attached</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                            <archive>
-                                <manifestEntries>
-                                    <Premain-Class>com.bluecatcode.jeff.agent.JeffAgent</Premain-Class>
-                                    <Agent-Class>com.bluecatcode.jeff.agent.JeffAgent</Agent-Class>
-                                    <Can-Redefine-Classes>true</Can-Redefine-Classes>
-                                    <Can-Retransform-Classes>true</Can-Retransform-Classes>
-                                </manifestEntries>
-                            </archive>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <index>true</index>
+                        <manifestEntries>
+                            <!-- General Information -->
+                            <Specification-Title>${project.description}</Specification-Title>
+                            <Specification-Version>${project.version}</Specification-Version>
+                            <Implementation-Title>${project.groupId}.${project.artifactId}</Implementation-Title>
+                            <!--<Implementation-Version>${git.buildnumber}</Implementation-Version>-->
+
+                            <!-- Git Information -->
+                            <!--<X-Git-Revision>${git.revision}</X-Git-Revision>-->
+                            <!--<X-Git-Branch>${git.branch}</X-Git-Branch>-->
+                            <!--<X-Git-Tag>${git.tag}</X-Git-Tag>-->
+                            <!--<X-Git-Commits-Count>${git.commitsCount}</X-Git-Commits-Count>-->
+
+                            <!-- Java Instrumentation Agent Configuration -->
+                            <Premain-Class>com.bluecatcode.jeff.agent.JeffAgent</Premain-Class>
+                            <Agent-Class>com.bluecatcode.jeff.agent.JeffAgent</Agent-Class>
+                            <Can-Redefine-Classes>true</Can-Redefine-Classes>
+                            <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                        </manifestEntries>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                    </archive>
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugin</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.19</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <inherited>true</inherited>
                 <configuration>
-                    <argLine>-javaagent:target/${project.build.finalName}-jar-with-dependencies</argLine>
+                    <shadedArtifactAttached>false</shadedArtifactAttached>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <!--<minimizeJar>true</minimizeJar>-->
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                                <exclude>META-INF/license/**</exclude>
+                                <exclude>META-INF/LICENSE</exclude>
+                                <exclude>META-INF/LICENSE.txt</exclude>
+                                <exclude>META-INF/DEPENDENCIES</exclude>
+                                <exclude>META-INF/NOTICE</exclude>
+                                <exclude>META-INF/NOTICE.txt</exclude>
+                                <exclude>LICENSE</exclude>
+                                <exclude>DEPENDENCIES</exclude>
+                                <exclude>NOTICE</exclude>
+                                <exclude>**/*.txt</exclude>
+                                <exclude>build.properties</exclude>
+                                <exclude>*.default</exclude>
+                            </excludes>
+                        </filter>
+                        <filter>
+                            <artifact>org.ow2.asm:asm-all</artifact>
+                            <includes>
+                                <include>org/objectweb/asm/**</include>
+                            </includes>
+                        </filter>
+                        <filter>
+                            <artifact>org.ow2.asm:asm-debug-all</artifact>
+                            <includes>
+                                <include>org/objectweb/asm/**</include>
+                            </includes>
+                        </filter>
+                    </filters>
+                    <artifactSet>
+                        <includes>
+                            <include>*:*</include>
+                        </includes>
+                    </artifactSet>
+                    <relocations>
+                        <relocation>
+                            <pattern>org.objectweb.asm</pattern>
+                            <shadedPattern>com.bluecatcode.jeff.agent.internal.org.objectweb.asm</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>ch.qos.logback</pattern>
+                            <shadedPattern>com.bluecatcode.jeff.agent.internal.ch.qos.logback</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.slf4j</pattern>
+                            <shadedPattern>com.bluecatcode.jeff.agent.internal.org.slf4j</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.google</pattern>
+                            <shadedPattern>com.bluecatcode.jeff.agent.internal.com.google</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>javax</pattern>
+                            <shadedPattern>com.bluecatcode.jeff.agent.internal.javax</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <argLine>-javaagent:target/${project.build.finalName}.jar</argLine>
                 </configuration>
             </plugin>
         </plugins>
