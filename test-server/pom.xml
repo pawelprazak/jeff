@@ -10,28 +10,22 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jeff-test</artifactId>
+    <artifactId>test-server</artifactId>
+
     <dependencies>
         <dependency>
             <groupId>com.bluecatcode</groupId>
             <artifactId>jeff-agent</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
         </dependency>
     </dependencies>
 

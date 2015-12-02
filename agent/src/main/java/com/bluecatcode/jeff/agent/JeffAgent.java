@@ -31,6 +31,7 @@ public class JeffAgent {
      * @param inst the instrumentation
      * @throws Exception
      */
+    @SuppressWarnings("unused")
     public static void agentmain(String args, Instrumentation inst) throws Exception {
         premain(args, inst);
     }
