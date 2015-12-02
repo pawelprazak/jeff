@@ -12,6 +12,8 @@
     <modules>
         <module>../agent</module>
         <module>../test</module>
+        <module>../test-server</module>
+        <module>../fuzzer</module>
     </modules>
 
     <properties>

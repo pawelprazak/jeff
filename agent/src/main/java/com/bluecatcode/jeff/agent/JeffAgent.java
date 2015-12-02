@@ -1,8 +1,8 @@
 package com.bluecatcode.jeff.agent;
 
 import com.bluecatcode.common.io.CloseableReference;
-import com.bluecatcode.common.io.Closeables;
-import com.google.common.base.Joiner;
+import com.bluecatcode.jeff.notifier.*;
+import com.bluecatcode.jeff.transformer.JeffClassFileTransformer;
 import com.sun.tools.attach.VirtualMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,15 +19,30 @@ public class JeffAgent {
     public static boolean firstTime = true;
 
     private static Instrumentation instrumentation;
+    private static JeffEventNotifier notifier;
+
+    /**
+     * JVM hook to dynamically load javaagent at runtime.
+     * <p>
+     * The agent class may have an agentmain method for use when the agent is
+     * started after VM startup.
+     *
+     * @param args command line, coma-separated arguments
+     * @param inst the instrumentation
+     * @throws Exception
+     */
+    public static void agentmain(String args, Instrumentation inst) throws Exception {
+        premain(args, inst);
+    }
 
     /**
      * JVM hook to statically load the javaagent at startup.
-     * 
+     * <p>
      * After the Java Virtual Machine (JVM) has initialized, the premain method
      * will be called. Then the real application main method will be called.
-     * 
-     * @param args
-     * @param inst
+     *
+     * @param args command line, coma-separated arguments
+     * @param inst the instrumentation
      * @throws Exception
      */
     public static void premain(String args, Instrumentation inst) throws Exception {
@@ -44,26 +59,66 @@ public class JeffAgent {
             // TODO
         }
 
-        logger.info("premain method invoked with args: '{}' and inst: '{}'", args, inst);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("premain method invoked with args: '{}' and inst: '{}'", args, inst);
+        }
+
+        // intercept SIGTERM signal
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Handling Shutdown jvm...");
+                }
+                Event event = new Event("JeffAgent", "premain", EventType.STOP);
+                notifier.notifyEvent(event);
+            }
+        });
+
         instrumentation = inst;
         instrumentation.addTransformer(new JeffClassFileTransformer(), true);
-        for (Class aClass : instrumentation.getAllLoadedClasses()) {
-//            logger.info("{}", aClass);
-        }
+        // trigger instrumentation all standard java exceptions
+        instrumentation.retransformClasses(exceptions());
+
+        // create notifier and notify fuzzer that agent is ready
+        notifier = new SystemOutJeffEventNotifier();
+        Event event = new Event("JeffAgent", "premain", EventType.START);
+        notifier.notifyEvent(event);
     }
 
-    /**
-     * JVM hook to dynamically load javaagent at runtime.
-     * 
-     * The agent class may have an agentmain method for use when the agent is
-     * started after VM startup.
-     * 
-     * @param args
-     * @param inst
-     * @throws Exception
-     */
-    public static void agentmain(String args, Instrumentation inst) throws Exception {
-        premain(args, inst);
+    private static Class[] exceptions() {
+        return new Class[]{
+                /* Unchecked RuntimeException */
+                ArithmeticException.class,
+                ArrayIndexOutOfBoundsException.class,
+                ArrayStoreException.class,
+                ClassCastException.class,
+                IllegalArgumentException.class,
+                IllegalMonitorStateException.class,
+                IllegalStateException.class,
+                IllegalThreadStateException.class,
+                IndexOutOfBoundsException.class,
+                NegativeArraySizeException.class,
+                NullPointerException.class,
+                NumberFormatException.class,
+                SecurityException.class,
+                StringIndexOutOfBoundsException.class,
+                UnsupportedOperationException.class,
+
+                /* Checked Exceptions */
+//                ClassNotFoundException.class, // FIXME don't know why multiple occurrences on jetty..
+                CloneNotSupportedException.class,
+                IllegalAccessException.class,
+                InstantiationException.class,
+                InterruptedException.class,
+                NoSuchFieldException.class,
+                NoSuchMethodException.class
+        };
+    }
+
+    public static JeffEventNotifier getNotifier() {
+        return notifier;
     }
 
     /**
