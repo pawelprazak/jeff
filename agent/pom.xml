@@ -61,7 +61,15 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19</version>
                 <configuration>
-                    <argLine>-javaagent:target/${project.build.finalName}-jar-with-dependencies</argLine>
+                    <argLine>-javaagent:target/${project.build.finalName}-jar-with-dependencies.jar</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19</version>
+                <configuration>
+                    <argLine>-javaagent:target/${project.build.finalName}-jar-with-dependencies.jar</argLine>
                 </configuration>
             </plugin>
         </plugins>

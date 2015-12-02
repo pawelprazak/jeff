@@ -2,6 +2,7 @@ package com.bluecatcode.jeff.transformer;
 
 import com.bluecatcode.jeff.visitor.ClassVisitor;
 import com.bluecatcode.jeff.visitor.ExceptionVisitor;
+import com.google.common.collect.ImmutableSet;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.slf4j.Logger;
@@ -12,10 +13,24 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class JeffClassFileTransformer implements ClassFileTransformer {
 
-    private static final Logger logger = LoggerFactory.getLogger(JeffClassFileTransformer.class);
+    private static final Logger log = LoggerFactory.getLogger(JeffClassFileTransformer.class);
+
+    private static final String JEFF_PACKAGE_PREFIX = "com/bluecatcode/jeff/";
+
+    private Set<String> classNameBlacklist = ImmutableSet.of(
+            JEFF_PACKAGE_PREFIX + ".*",
+            "ch/qos/logback/.*",
+            "org/apache/maven/.*",
+            "org/junit/runners/.*",
+            "com/intellij/*",
+            "sun/.*",
+            "sun/.*",
+            "java/.*"
+    );
 
     private List<String> transformedClasses = new ArrayList<String>();
 
@@ -33,7 +48,7 @@ public class JeffClassFileTransformer implements ClassFileTransformer {
         }
 
         // no instrument agent classes
-        if (className.startsWith("com/bluecatcode/jeff/")) {
+        if (className.startsWith(JEFF_PACKAGE_PREFIX)) {
             return originalBytecode;
         }
 
@@ -53,13 +68,15 @@ public class JeffClassFileTransformer implements ClassFileTransformer {
             return writer.toByteArray();
         }
 
-
         return originalBytecode;
     }
 
     private boolean isBlacklisted(String className) {
-        return className.contains("java/")
-                || className.contains("ch/qos/logback/")
-                || className.contains("sun/");
+        for (String pattern : classNameBlacklist) {
+            if (className.matches(pattern)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

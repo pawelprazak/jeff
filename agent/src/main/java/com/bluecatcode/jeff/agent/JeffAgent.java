@@ -14,7 +14,7 @@ import static com.bluecatcode.common.io.Closeables.closeableFrom;
 
 public class JeffAgent {
 
-    private static final Logger logger = LoggerFactory.getLogger(JeffAgent.class);
+    private static final Logger log = LoggerFactory.getLogger(JeffAgent.class);
 
     public static boolean firstTime = true;
 
@@ -55,21 +55,24 @@ public class JeffAgent {
             }
         }
 
+        notifier = new SystemOutJeffEventNotifier();
+        notifier.notifyEvent(new Event("JeffAgent", "premain", EventType.START));
+
         if (args != null) {
             // TODO
         }
 
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("premain method invoked with args: '{}' and inst: '{}'", args, inst);
+        if (log.isDebugEnabled()) {
+            log.debug("premain method invoked with args: '{}' and inst: '{}'", args, inst);
         }
 
         // intercept SIGTERM signal
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Handling Shutdown jvm...");
+                if (log.isDebugEnabled()) {
+                    log.debug("Handling Shutdown jvm...");
                 }
                 Event event = new Event("JeffAgent", "premain", EventType.STOP);
                 notifier.notifyEvent(event);
@@ -81,15 +84,14 @@ public class JeffAgent {
         // trigger instrumentation all standard java exceptions
         instrumentation.retransformClasses(exceptions());
 
-        // create notifier and notify fuzzer that agent is ready
-        notifier = new SystemOutJeffEventNotifier();
-        Event event = new Event("JeffAgent", "premain", EventType.START);
-        notifier.notifyEvent(event);
+        // notify fuzzer that agent is ready
+        notifier.notifyEvent(new Event("JeffAgent", "premain", EventType.READY));
     }
 
     private static Class[] exceptions() {
         return new Class[]{
                 /* Unchecked RuntimeException */
+//                RuntimeException.class,
                 ArithmeticException.class,
                 ArrayIndexOutOfBoundsException.class,
                 ArrayStoreException.class,
@@ -107,6 +109,7 @@ public class JeffAgent {
                 UnsupportedOperationException.class,
 
                 /* Checked Exceptions */
+//                Exception.class,
 //                ClassNotFoundException.class, // FIXME don't know why multiple occurrences on jetty..
                 CloneNotSupportedException.class,
                 IllegalAccessException.class,
@@ -137,10 +140,11 @@ public class JeffAgent {
         int p = nameOfRunningVM.indexOf('@');
         String pid = nameOfRunningVM.substring(0, p);
 
-        logger.info("dynamically loading javaagent to JVM process: {}", nameOfRunningVM);
+        log.info("dynamically loading javaagent to JVM process: {}", nameOfRunningVM);
         try (CloseableReference<VirtualMachine> vm = closeableFrom(VirtualMachine.attach(pid), VirtualMachine::detach)) {
             String jarFilePath = locateAgent();
-            vm.get().loadAgent(jarFilePath);
+            VirtualMachine virtualMachine = vm.get();
+            virtualMachine.loadAgent(jarFilePath);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

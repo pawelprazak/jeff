@@ -18,6 +18,7 @@ public class JeffAgentTest {
     @BeforeClass
     public static void setUp() throws Exception {
         JeffAgent.initialize();
+        Thread.sleep(10);
     }
 
     @Test

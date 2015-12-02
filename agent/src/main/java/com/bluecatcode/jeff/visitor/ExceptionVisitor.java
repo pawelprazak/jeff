@@ -7,14 +7,13 @@ import org.slf4j.LoggerFactory;
 
 public class ExceptionVisitor extends org.objectweb.asm.ClassVisitor {
 
-
-    private static final Logger logger = LoggerFactory.getLogger(ClassVisitor.class);
+    private static final Logger log = LoggerFactory.getLogger(ExceptionVisitor.class);
 
     private String className;
 
-    public ExceptionVisitor(org.objectweb.asm.ClassVisitor cv, String pClassName) {
-        super(Opcodes.ASM5, cv);
-        className = pClassName;
+    public ExceptionVisitor(org.objectweb.asm.ClassVisitor classVisitor, String className) {
+        super(Opcodes.ASM5, classVisitor);
+        this.className = className;
     }
 
     @Override

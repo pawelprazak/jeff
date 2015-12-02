@@ -1,8 +1,7 @@
 package com.bluecatcode.jeff.notifier;
 
 public enum EventType {
-    START,
+    START, READY, STOP,
     EXCEPTION,
     CALL,
-    STOP
 }
