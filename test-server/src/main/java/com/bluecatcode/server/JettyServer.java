@@ -16,5 +16,6 @@ public class JettyServer {
         ServletContextHandler handler = new ServletContextHandler(server, "/jetty");
         handler.addServlet(JettyServlet.class, "/");
         server.start();
+        server.stop();
     }
 }

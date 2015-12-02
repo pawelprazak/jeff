@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <property name="DEV_HOME" value="c:/repo/gitHub/jeff/" />
+    <property name="DEV_HOME" value="${project.highest-basedir}/log/" />
 
     <appender name="FILE-AUDIT"
               class="ch.qos.logback.core.rolling.RollingFileAppender">

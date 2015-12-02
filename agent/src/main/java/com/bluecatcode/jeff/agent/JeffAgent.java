@@ -1,6 +1,7 @@
 package com.bluecatcode.jeff.agent;
 
 import com.bluecatcode.common.io.CloseableReference;
+import com.bluecatcode.common.io.Resources;
 import com.bluecatcode.jeff.notifier.*;
 import com.bluecatcode.jeff.transformer.JeffClassFileTransformer;
 import com.sun.tools.attach.VirtualMachine;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
+import java.util.Properties;
 
 import static com.bluecatcode.common.io.Closeables.closeableFrom;
 
@@ -52,20 +54,21 @@ public class JeffAgent {
             if (firstTime) {
                 firstTime = false;
             } else {
-                throw new Exception("Main : attempting to load Byteman agent more than once");
+                throw new Exception("Main : attempting to load agent more than once");
             }
         }
 
+        if (log.isDebugEnabled()) {
+            log.debug("premain method invoked with args: '{}' and inst: '{}'", args, inst);
+        }
+
         notifier = new SystemOutJeffEventNotifier();
+//        notifier = new LogbackJeffEventNotifier();
+//        notifier = new SocketJeffEventNotifier();
         notifier.notifyEvent(new Event("JeffAgent", "premain", EventType.START));
 
         if (args != null) {
             // TODO
-        }
-
-
-        if (log.isDebugEnabled()) {
-            log.debug("premain method invoked with args: '{}' and inst: '{}'", args, inst);
         }
 
         // intercept SIGTERM signal
@@ -152,7 +155,14 @@ public class JeffAgent {
     }
 
     private static String locateAgent() {
-        return "/home/pawel/.m2/repository/com/bluecatcode/jeff-agent/1.0-SNAPSHOT/jeff-agent-1.0-SNAPSHOT-jar-with-dependencies.jar";
+        String property = getProperties().getProperty("project.highest-basedir");
+        String path = property + "/agent/target/jeff-agent-1.0-SNAPSHOT-jar-with-dependencies.jar";
+        log.info("Loading agent from: {}", path);
+        return path;
+    }
+
+    private static Properties getProperties() {
+        return Resources.getResourceAsProperties(JeffAgent.class, "/maven.properties");
     }
 
 }

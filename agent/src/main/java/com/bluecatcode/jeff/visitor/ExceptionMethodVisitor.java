@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 public class ExceptionMethodVisitor extends MethodVisitor implements Opcodes {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExceptionMethodVisitor.class);
+    private static final Logger log = LoggerFactory.getLogger(ExceptionMethodVisitor.class);
 
     private final String methodName;
     private final String className;
@@ -20,8 +20,8 @@ public class ExceptionMethodVisitor extends MethodVisitor implements Opcodes {
 
     @Override
     public void visitCode() {
-        if (logger.isDebugEnabled()) {
-            logger.debug("visit code, method: {}, class: {}", methodName, className);
+        if (log.isDebugEnabled()) {
+            log.debug("visit code, method: {}, class: {}", methodName, className);
         }
 
         // inject exception touch point
