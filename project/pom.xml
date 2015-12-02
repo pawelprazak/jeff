@@ -12,6 +12,7 @@
     <modules>
         <module>../agent</module>
         <module>../test</module>
+        <module>../jacoco-test</module>
     </modules>
 
     <properties>
