@@ -24,31 +24,18 @@ public class JeffAgent {
     private static JeffEventNotifier notifier;
 
     /**
-     * JVM hook to dynamically load javaagent at runtime.
-     * <p>
-     * The agent class may have an agentmain method for use when the agent is
-     * started after VM startup.
-     *
-     * @param args command line, coma-separated arguments
-     * @param inst the instrumentation
-     * @throws Exception
-     */
-    @SuppressWarnings("unused")
-    public static void agentmain(String args, Instrumentation inst) throws Exception {
-        premain(args, inst);
-    }
-
-    /**
      * JVM hook to statically load the javaagent at startup.
-     * <p>
+     *
      * After the Java Virtual Machine (JVM) has initialized, the premain method
      * will be called. Then the real application main method will be called.
      *
      * @param args command line, coma-separated arguments
-     * @param inst the instrumentation
+     * @param inst the instrumentation instance
      * @throws Exception
      */
     public static void premain(String args, Instrumentation inst) throws Exception {
+        log.info("premain method invoked with args: {} and inst: {}", args, inst);
+
         // guard against the agent being loaded twice
         synchronized (JeffAgent.class) {
             if (firstTime) {
@@ -56,10 +43,6 @@ public class JeffAgent {
             } else {
                 throw new Exception("Main : attempting to load agent more than once");
             }
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("premain method invoked with args: '{}' and inst: '{}'", args, inst);
         }
 
         notifier = new SystemOutJeffEventNotifier();
@@ -90,6 +73,20 @@ public class JeffAgent {
 
         // notify fuzzer that agent is ready
         notifier.notifyEvent(new Event("JeffAgent", "premain", EventType.READY));
+    }
+
+    /**
+     * JVM hook to dynamically load javaagent at runtime.
+     *
+     * The agent class may have an agentmain method for use when the agent is
+     * started after VM startup.
+     *
+     * @param args command line, coma-separated arguments
+     * @param inst the instrumentation instance
+     * @throws Exception
+     */
+    public static void agentmain(String args, Instrumentation inst) throws Exception {
+        premain(args, inst);
     }
 
     private static Class[] exceptions() {
@@ -141,8 +138,7 @@ public class JeffAgent {
 
     private static void loadAgent() {
         String nameOfRunningVM = ManagementFactory.getRuntimeMXBean().getName();
-        int p = nameOfRunningVM.indexOf('@');
-        String pid = nameOfRunningVM.substring(0, p);
+        String pid = nameOfRunningVM.substring(0, nameOfRunningVM.indexOf('@'));
 
         log.info("dynamically loading javaagent to JVM process: {}", nameOfRunningVM);
         try (CloseableReference<VirtualMachine> vm = closeableFrom(VirtualMachine.attach(pid), VirtualMachine::detach)) {
@@ -164,5 +160,4 @@ public class JeffAgent {
     private static Properties getProperties() {
         return Resources.getResourceAsProperties(JeffAgent.class, "/maven.properties");
     }
-
 }

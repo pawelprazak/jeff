@@ -4,29 +4,47 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.bluecatcode</groupId>
+    <groupId>com.bluecatcode.jeff</groupId>
     <artifactId>jeff-project</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>JEFF project</description>
+    <url>https://github.com/pawelprazak/jeff-agent</url>
+    <inceptionYear>2016</inceptionYear>
 
     <modules>
         <module>agent</module>
         <module>fuzzer</module>
-        <module>test-server</module>
+        <!--<module>test-server</module>-->
     </modules>
 
     <properties>
-        <!-- Build properties -->
-        <jdk.version>1.8</jdk.version>
-
-        <!-- actual path to tools.jar is defined in the profiles below -->
-        <tools.jar>/file-not-found/tools.jar</tools.jar>
-
         <!-- Decouple file encoding of the platform encoding -->
         <encoding>UTF-8</encoding>
         <project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${encoding}</project.reporting.outputEncoding>
+
+        <!-- Build properties -->
+        <jdk.version>1.8</jdk.version>
+        <jdk-target.version>1.8</jdk-target.version>
+
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ssa</maven.build.timestamp.format>
+        <timestamp>${maven.build.timestamp}</timestamp>
+
+        <!-- actual path to tools.jar is defined in the profiles below -->
+        <tools.jar>/file-not-found/tools.jar</tools.jar>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>project-lib</id>
+            <name>Repository in project's lib dir</name>
+            <layout>default</layout>
+            <url>file:lib</url>
+        </repository>
+    </repositories>
 
     <dependencyManagement>
         <dependencies>
@@ -39,14 +57,28 @@
 
             <!-- External dependencies -->
             <dependency>
+                <groupId>com.sun</groupId>
+                <artifactId>tools</artifactId>
+                <version>${jdk-target.version}.0</version>
+                <scope>system</scope>
+                <systemPath>${tools.jar}</systemPath>
+            </dependency>
+
+            <dependency>
+                <groupId>com.simontuffs</groupId>
+                <artifactId>one-jar</artifactId>
+                <version>0.97</version>
+            </dependency>
+
+            <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>18.0</version>
+                <version>19.0</version>
             </dependency>
             <dependency>
                 <groupId>com.bluecatcode.guava</groupId>
-                <artifactId>guava-18.0-extended</artifactId>
-                <version>1.0.3</version>
+                <artifactId>guava-19.0-extended</artifactId>
+                <version>1.0.4</version>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
@@ -89,6 +121,7 @@
 
     <build>
         <defaultGoal>install</defaultGoal>
+        <finalName>${project.artifactId}-${project.version}</finalName>
 
         <pluginManagement>
             <plugins>
@@ -97,6 +130,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.3</version>
                     <configuration>
+                        <encoding>${encoding}</encoding>
                         <compilerVersion>${jdk.version}</compilerVersion>
                         <source>${jdk.version}</source>
                         <target>${jdk.version}</target>
@@ -104,8 +138,104 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>2.7</version>
+                    <configuration>
+                        <encoding>${encoding}</encoding>
+                        <nonFilteredFileExtensions>
+                            <nonFilteredFileExtension>pem</nonFilteredFileExtension>
+                            <nonFilteredFileExtension>jks</nonFilteredFileExtension>
+                            <nonFilteredFileExtension>key</nonFilteredFileExtension>
+                            <nonFilteredFileExtension>pub</nonFilteredFileExtension>
+                        </nonFilteredFileExtensions>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>2.6</version>
+                    <configuration>
+                        <archive>
+                            <manifest>
+                                <mainClass>com.bluecatcode.jeff.agent.Main</mainClass>
+                                <addClasspath>true</addClasspath>
+                                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            </manifest>
+                            <manifestEntries>
+                                <Specification-Title>${project.description}</Specification-Title>
+                                <Specification-Version>${project.version}</Specification-Version>
+                                <Implementation-Title>${project.groupId}.${project.artifactId}</Implementation-Title>
+                                <Implementation-Version>${project.version}</Implementation-Version>
+                                <X-Build-Timestamp>${timestamp}</X-Build-Timestamp>
+                                <X-Git-Revision>${git.revision}</X-Git-Revision>
+                                <X-Git-Branch>${git.branch}</X-Git-Branch>
+                                <X-Git-Tag>${git.tag}</X-Git-Tag>
+                                <X-Git-Commits-Count>${git.commitsCount}</X-Git-Commits-Count>
+                            </manifestEntries>
+                            <index>true</index>
+                            <addMavenDescriptor>false</addMavenDescriptor>
+                        </archive>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>2.4.3</version>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>shade</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <inherited>true</inherited>
+                    <configuration>
+                        <shadedArtifactAttached>false</shadedArtifactAttached>
+                        <createDependencyReducedPom>true</createDependencyReducedPom>
+                        <minimizeJar>true</minimizeJar>
+                        <filters>
+                            <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/*.SF</exclude>
+                                    <exclude>META-INF/*.DSA</exclude>
+                                    <exclude>META-INF/*.RSA</exclude>
+                                    <exclude>META-INF/*.RSA</exclude>
+                                    <exclude>META-INF/license/**</exclude>
+                                    <exclude>META-INF/LICENSE</exclude>
+                                    <exclude>META-INF/LICENSE.txt</exclude>
+                                    <exclude>META-INF/DEPENDENCIES</exclude>
+                                    <exclude>META-INF/NOTICE</exclude>
+                                    <exclude>META-INF/NOTICE.txt</exclude>
+                                    <exclude>META-INF/maven/**</exclude>
+                                    <exclude>META-INF/services/**</exclude>
+                                    <exclude>LICENSE</exclude>
+                                    <exclude>DEPENDENCIES</exclude>
+                                    <exclude>NOTICE</exclude>
+                                    <exclude>**/*.txt</exclude>
+                                    <exclude>build.properties</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.5.3</version>
+                    <version>2.6</version>
+                    <executions>
+                        <execution>
+                            <id>make-assembly</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>attached</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -165,9 +295,32 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>ru.concerteza.buildnumber</groupId>
+                    <artifactId>maven-jgit-buildnumber-plugin</artifactId>
+                    <version>1.2.10</version>
+                    <executions>
+                        <execution>
+                            <phase>initialize</phase>
+                            <id>git-buildnumber</id>
+                            <goals>
+                                <goal>extract-buildnumber</goal>
+                            </goals>
+                            <configuration>
+                                <javaScriptBuildnumberCallback>
+                                    (tag.length > 0) ? tag : branch + "-" + shortRevision + "-" + commitsCount
+                                </javaScriptBuildnumberCallback>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>ru.concerteza.buildnumber</groupId>
+                <artifactId>maven-jgit-buildnumber-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.commonjava.maven.plugins</groupId>
                 <artifactId>directory-maven-plugin</artifactId>

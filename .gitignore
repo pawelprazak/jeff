@@ -22,6 +22,10 @@ pom.xml.next
 release.properties
 .surefire-*
 
+# Gradle
+.gradle
+build
+
 # Packages
 *.jar
 *.war
@@ -44,6 +48,9 @@ release.properties
 .idea_modules
 out
 atlassian-ide-plugin.xml
+
+# Android Studio
+local.properties
 
 # Windows
 Thumbs.db

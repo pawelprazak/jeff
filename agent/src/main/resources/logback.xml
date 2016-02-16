@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <property name="DEV_HOME" value="${project.highest-basedir}/log/" />
+    <property name="DEV_HOME" value="${project.highest-basedir}/log/"/>
 
-    <appender name="FILE-AUDIT"
-              class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!--<appender name="FILE-AUDIT"
+              class="com.bluecatcode.jeff.shaded.ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${DEV_HOME}/debug.log</file>
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+        <encoder class="com.bluecatcode.jeff.shaded.ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>
                 %d{yyyy-MM-dd HH:mm:ss} - %msg%n
             </Pattern>
         </encoder>
 
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- rollover daily -->
+        <rollingPolicy class="com.bluecatcode.jeff.shaded.ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            &lt;!&ndash; rollover daily &ndash;&gt;
             <fileNamePattern>${DEV_HOME}/debug.%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy
-                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                    class="com.bluecatcode.jeff.shaded.ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>30MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
-    </appender>
+    </appender>-->
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <layout class="ch.qos.logback.classic.PatternLayout">
+    <appender name="STDOUT" class="com.bluecatcode.jeff.shaded.ch.qos.logback.core.ConsoleAppender">
+        <layout class="com.bluecatcode.jeff.shaded.ch.qos.logback.classic.PatternLayout">
             <Pattern>
                 %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
             </Pattern>
@@ -32,11 +32,13 @@
     </appender>
 
     <root level="all">
-        <appender-ref ref="FILE-AUDIT" />
+        <!--<appender-ref ref="FILE-AUDIT"/>-->
+        <appender-ref ref="STDOUT"/>
     </root>
 
     <logger name="com.bluecatcode.jeff" level="debug" additivity="false">
-        <appender-ref ref="FILE-AUDIT" />
+        <!--<appender-ref ref="FILE-AUDIT"/>-->
+        <appender-ref ref="STDOUT"/>
     </logger>
 
 </configuration>

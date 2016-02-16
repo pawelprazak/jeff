@@ -3,9 +3,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
+        <groupId>com.bluecatcode.jeff</groupId>
         <artifactId>jeff-project</artifactId>
-        <groupId>com.bluecatcode</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>0.1.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -20,8 +20,13 @@
         </dependency>
 
         <dependency>
+            <groupId>com.simontuffs</groupId>
+            <artifactId>one-jar</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.bluecatcode.guava</groupId>
-            <artifactId>guava-18.0-extended</artifactId>
+            <artifactId>guava-19.0-extended</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -50,28 +55,94 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <artifactSet>
+                        <includes>
+                            <include>*:*</include>
+                        </includes>
+                    </artifactSet>
+                    <relocations>
+                        <relocation>
+                            <pattern>javax.annotation</pattern>
+                            <shadedPattern>${project.groupId}.shaded.javax.annotation</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>javax.activation</pattern>
+                            <shadedPattern>${project.groupId}.shaded.javax.activation</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>javax.mail</pattern>
+                            <shadedPattern>${project.groupId}.shaded.javax.mail</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.simontuffs</pattern>
+                            <shadedPattern>${project.groupId}.shaded.com.simontuffs</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.google</pattern>
+                            <shadedPattern>${project.groupId}.shaded.com.google</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.bluecatcode.guava</pattern>
+                            <shadedPattern>${project.groupId}.shaded.com.bluecatcode.guava</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.ow2</pattern>
+                            <shadedPattern>${project.groupId}.shaded.org.ow2</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.objectweb</pattern>
+                            <shadedPattern>${project.groupId}.shaded.org.objectweb</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>ch.qos</pattern>
+                            <shadedPattern>${project.groupId}.shaded.ch.qos</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.slf4j</pattern>
+                            <shadedPattern>${project.groupId}.shaded.org.slf4j</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <filters>
+                        <filter>
+                            <artifact>com.simontuffs:one-jar</artifact>
+                            <excludes>
+                                <exclude>.version</exclude>
+                                <exclude>boot-manifest.mf</exclude>
+                                <exclude>src/**</exclude>
+                                <exclude>doc/**</exclude>
+                            </excludes>
+                        </filter>
+                        <filter>
+                            <artifact>com.bluecatcode.guava:guava-19.0-extended</artifact>
+                            <!-- TODO to be fixed in the guava-extended lib -->
+                            <excludes>
+                                <exclude>javamail*</exclude>
+                                <exclude>mailcap*</exclude>
+                                <exclude>mimetypes*</exclude>
+                                <exclude>gfprobe-provider.xml</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>attached</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
-                            <archive>
-                                <manifestEntries>
-                                    <Premain-Class>com.bluecatcode.jeff.agent.JeffAgent</Premain-Class>
-                                    <Agent-Class>com.bluecatcode.jeff.agent.JeffAgent</Agent-Class>
-                                    <Can-Redefine-Classes>true</Can-Redefine-Classes>
-                                    <Can-Retransform-Classes>true</Can-Retransform-Classes>
-                                </manifestEntries>
-                            </archive>
-                        </configuration>
-                    </execution>
-                </executions>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Premain-Class>com.bluecatcode.jeff.agent.Main</Premain-Class>
+                            <Agent-Class>com.bluecatcode.jeff.agent.Main</Agent-Class>
+                            <Can-Redefine-Classes>false</Can-Redefine-Classes>
+                            <Can-Retransform-Classes>false</Can-Retransform-Classes>
+                        </manifestEntries>
+                    </archive>
+                    <descriptors>
+                        <descriptor>src/assembly/one-jar.xml</descriptor>
+                    </descriptors>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -89,9 +160,6 @@
                 <dependency>
                     <groupId>com.sun</groupId>
                     <artifactId>tools</artifactId>
-                    <version>${jdk.version}</version>
-                    <scope>system</scope>
-                    <systemPath>${tools.jar}</systemPath>
                 </dependency>
             </dependencies>
         </profile>
